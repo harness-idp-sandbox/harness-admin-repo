@@ -1,6 +1,6 @@
 # {{ cookiecutter.project_name }}
 
-{{ cookiecutter.description }}
+{{ cookiecutter.project_description }}
 
 ---
 
@@ -53,7 +53,7 @@ The runtime image expects the fat jar to be present (built with the command abov
 
 ```bash
 # build & push for EKS (linux/amd64)
-docker buildx build   --platform linux/amd64   -t {{ cookiecutter.docker_registry }}/{ cookiecutter.docker_image_name }}:latest   --push .
+docker buildx build   --platform linux/amd64   -t {{ cookiecutter.docker_registry }}/{{ cookiecutter.docker_image_name }}:latest   --push .
 ```
 
 > Tip: If you’re using a private registry, make sure your cluster has the right imagePullSecret.
@@ -71,7 +71,7 @@ kubectl apply -f kubernetes/service.yml
 kubectl apply -f kubernetes/deployment.yml
 
 # watch rollout
-kubectl rollout status deploy/{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
+kubectl rollout status deploy/{{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
 
 # get external endpoint
 kubectl get svc {{ cookiecutter.artifact_id }}-svc -n {{ cookiecutter.k8s_namespace }}
@@ -95,10 +95,10 @@ kubectl port-forward svc/{{ cookiecutter.artifact_id }}-svc 8080:80 -n {{ cookie
 This repo ships with `:latest` and `imagePullPolicy: Always`, so you don’t need to edit YAML on each build. After pushing a new image, just restart the deployment:
 
 ```bash
-docker buildx build --platform linux/amd64 -t {{ cookiecutter.docker_registry }/{ cookiecutter.docker_image_name }}:latest --push .
+docker buildx build --platform linux/amd64 -t {{ cookiecutter.docker_registry }}/{{ cookiecutter.docker_image_name }}:latest --push .
 
-kubectl rollout restart deploy/{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
-kubectl rollout status deploy/{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
+kubectl rollout restart deploy/{{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
+kubectl rollout status deploy/{{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
 ```
 
 ---
@@ -110,8 +110,8 @@ kubectl rollout status deploy/{ cookiecutter.artifact_id }} -n {{ cookiecutter.k
 server.port=8080
 management.endpoints.web.exposure.include=health,info
 management.info.git.mode=full
-info.app.name={ cookiecutter.package_name }
-info.app.description={ cookiecutter.description }
+info.app.name={{ cookiecutter.package_name }}
+info.app.description={{ cookiecutter.description }}
 ```
 
 Env vars used by the container (set in the Deployment):
