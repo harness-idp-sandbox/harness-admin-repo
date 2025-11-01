@@ -8,7 +8,11 @@ kind: Component
 
 # Machine-friendly unique key
 identifier: {{ cookiecutter.idp_identifier }}
-scope: ACCOUNT
+
+# Update the scope and org/project identifiers to match the Harness environment
+scope: PROJECT
+orgIdentifier: {{ cookiecutter.org_identifier }}
+projectIdentifier: {{ cookiecutter.project_identifier }}
 
 # Human display name
 name: {{ cookiecutter.project_name }}

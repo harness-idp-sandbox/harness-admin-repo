@@ -13,5 +13,7 @@
     "docker_image_name": "{{ cookiecutter.project_slug }}",
     "k8s_namespace": "default",
     "connector_ref": "IDP_GitHub_Sandbox_for_Testing",
-    "github_org": "harness-idp-sandbox"
+    "github_org": "harness-idp-sandbox",
+    "org_identifier": "sandbox",
+    "project_identifier": "parson"
 }
