@@ -1,0 +1,14 @@
+{
+    "project_name": "Sample Java App",
+    "project_description": "A sample Java application built with Spring Boot",
+    "project_slug": "{{ cookiecutter.project_name|lower|replace(' ', '-') }}",
+    "package_name": "{{ cookiecutter.project_name|lower|replace(' ', '') }}",
+    "group_id": "com.harness",
+    "package_path": "{{ cookiecutter.group_id.replace('.', '/') }}/{{ cookiecutter.package_name }}",
+    "artifact_id": "{{ cookiecutter.project_slug }}",
+    "version": "1.0-SNAPSHOT",
+    "author_name": "Harness",
+    "docker_registry": "docker.io/parsontodd",
+    "docker_image_name": "{{ cookiecutter.project_slug }}",
+    "k8s_namespace": "default"
+}

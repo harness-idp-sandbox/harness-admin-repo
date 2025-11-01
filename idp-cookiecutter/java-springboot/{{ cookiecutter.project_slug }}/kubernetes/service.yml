@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ cookiecutter.artifact_id }}-svc
+  namespace: {{ cookiecutter.k8s_namespace }}
+  labels:
+    app: {{ cookiecutter.artifact_id }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: {{ cookiecutter.artifact_id }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+

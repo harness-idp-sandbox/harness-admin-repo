@@ -1,0 +1,249 @@
+apiVersion: harness.io/v1
+kind: Workflow
+name: Java Spring Boot App Provisioning
+identifier: java_spring_boot_app_provisioning_workflow
+type: workflow
+owner: user:account/todd.parson@harness.io
+projectIdentifier: parson
+orgIdentifier: sandbox
+metadata:
+  description: |
+    Scaffolds a new Java Spring Boot app via Cookiecutter, commits to Git, and opens a PR.
+    Runs a provisioning pipeline that consumes the cookiecutter variables below.
+  actionButton:
+    text: Provision
+spec:
+  output:
+    links:
+      - title: Pipeline Details
+        url: ${{ steps.trigger.output.PipelineUrl }}
+      - title: New Branch URL
+        url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Create_Branch.output.outputVariables.BRANCH_URL'] }}
+      - title: PR URL
+        url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Open_PR.output.outputVariables.PR_URL'] }}
+
+  parameters:
+    - title: Application Details
+      required:
+        - project_name
+        - group_id
+        - version
+      properties:
+        project_name:
+          title: Application Name
+          type: string
+          description: Human-readable name (e.g., “Sample Java App”).
+          minLength: 3
+          maxLength: 60
+          pattern: ^[A-Za-z0-9][A-Za-z0-9 _-]*[A-Za-z0-9]$
+          ui:options:
+            placeholder: Sample Java App
+            help: Letters/numbers/spaces/dash/underscore; no leading/trailing spaces.
+        project_description:
+          title: Application Description
+          type: string
+          default: A sample Java application built with Spring Boot
+        author_name:
+          title: Author/Owner
+          type: string
+          default: Harness
+        group_id:
+          title: Maven Group ID
+          type: string
+          default: com.harness
+          pattern: ^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$
+          ui:options:
+            help: Standard Java package group (e.g., com.example.platform).
+        version:
+          title: Initial Version
+          type: string
+          default: 1.0-SNAPSHOT
+          pattern: ^[0-9A-Za-z._-]+$
+
+    - title: Derived & Naming (override if you need to)
+      properties:
+        project_slug:
+          title: Project Slug
+          type: string
+          description: Defaults to lowercased project name with spaces replaced by dashes.
+          default: ""
+          ui:options:
+            placeholder: (auto: my-cool-app)
+        package_name:
+          title: Package Name
+          type: string
+          description: Defaults to lowercased project name with spaces removed.
+          default: ""
+          ui:options:
+            placeholder: (auto: mycoolapp)
+        artifact_id:
+          title: Maven Artifact ID
+          type: string
+          description: Defaults to project_slug.
+          default: ""
+          ui:options:
+            placeholder: (auto: my-cool-app)
+        package_path:
+          title: Package Path
+          type: string
+          description: Defaults to group_id as path + '/' + package_name.
+          default: ""
+          ui:options:
+            placeholder: (auto: com/harness/mycoolapp)
+
+    - title: Container & Runtime
+      properties:
+        docker_registry:
+          title: Docker Registry
+          type: string
+          default: docker.io/parsontodd
+        docker_image_name:
+          title: Docker Image Name
+          type: string
+          description: Defaults to project_slug.
+          default: ""
+          ui:options:
+            placeholder: (auto: my-cool-app)
+        k8s_namespace:
+          title: Kubernetes Namespace
+          type: string
+          default: default
+          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+
+    - title: Repository & Branching
+      required:
+        - github_username
+      properties:
+        github_username:
+          title: GitHub Username
+          description: Enter your GitHub handle (no '@').
+          type: string
+          pattern: ^[A-Za-z0-9-]+$
+          minLength: 1
+          maxLength: 39
+          ui:options:
+            placeholder: octocat
+        repoPicker:
+          title: GitHub Repositories
+          type: string
+          description: Pick a repo you have access to
+          ui:field: SelectFieldFromApi
+          ui:options:
+            path: proxy/github-api/user/repos?per_page=100&affiliation=owner,collaborator,organization_member
+            valueSelector: full_name
+            labelSelector: full_name
+            required: true
+            setContextData:
+              repo_name: name
+              repo_owner: owner.login
+              repo_full_name: full_name
+              default_branch: default_branch
+              visibility: visibility
+        repo_owner:
+          title: Repository Owner / Org
+          readonly: true
+          type: string
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: "{{formContext.repo_owner}}"
+        repository:
+          title: Repo Name
+          readonly: true
+          type: string
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: "{{formContext.repo_name}}"
+        default_branch:
+          title: Default Branch
+          readonly: true
+          type: string
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: "{{formContext.default_branch}}"
+        visibility:
+          title: Visibility
+          readonly: true
+          type: string
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: "{{formContext.visibility}}"
+        new_branch_prefix:
+          title: Branch naming prefix
+          description: Used for the new feature branch.
+          type: string
+          default: feature
+          pattern: ^[a-z0-9][a-z0-9._-]{1,20}$
+          ui:options:
+            help: Lowercase letters/numbers/.-_; 2–21 chars total.
+
+    - title: Permissions Check
+      properties:
+        validate_permissions:
+          title: Validate GitHub permissions
+          type: string
+          ui:field: ValidateAndFetch
+          ui:options:
+            button:
+              title: Check my access
+            path: proxy/github-api/repos/{{parameters.repo_owner}}/{{parameters.repository}}/collaborators/{{parameters.github_username}}/permission
+            request:
+              method: GET
+              headers:
+                Accept: application/vnd.github+json
+            setContextData:
+              gh_permission: permission
+              gh_error: message
+        resolved_permission:
+          title: Your repo permission
+          readonly: true
+          type: string
+          ui:field: ContextViewer
+          ui:options:
+            getContextData: "{{formContext.gh_permission}}"
+        permission_hint:
+          title: Heads up
+          type: string
+          readonly: true
+          description: You’ll need at least "write" permission on this repo to create branches/PRs.
+
+    - title: Auth
+      required:
+        - token
+      properties:
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+
+  steps:
+    - id: trigger
+      name: Provision Java App
+      action: trigger:harness-custom-pipeline
+      input:
+        # Update this URL to your pipeline’s executions page
+        url: https://app.harness.io/ng/#/account/EeRjnXTnS4GrLG5VNNJZUw/orgs/sandbox/projects/parson/pipelines/Cookiecutter_Java_App_Provisioning/executions
+        apikey: ${{ parameters.token }}
+        # Everything below maps directly to your cookiecutter.json variables
+        inputset:
+          project_name:         ${{ parameters.project_name }}
+          project_description:  ${{ parameters.project_description }}
+          project_slug:         ${{ parameters.project_slug }}
+          package_name:         ${{ parameters.package_name }}
+          group_id:             ${{ parameters.group_id }}
+          package_path:         ${{ parameters.package_path }}
+          artifact_id:          ${{ parameters.artifact_id }}
+          version:              ${{ parameters.version }}
+          author_name:          ${{ parameters.author_name }}
+          docker_registry:      ${{ parameters.docker_registry }}
+          docker_image_name:    ${{ parameters.docker_image_name }}
+          k8s_namespace:        ${{ parameters.k8s_namespace }}
+
+          # Git context
+          gh_org:               ${{ parameters.repo_owner }}
+          base_repo:            ${{ parameters.repository }}
+          default_branch:       ${{ parameters.default_branch }}
+          new_branch_prefix:    ${{ parameters.new_branch_prefix }}
+          github_username:      ${{ parameters.github_username }}
+
+        showOutputVariables: true
