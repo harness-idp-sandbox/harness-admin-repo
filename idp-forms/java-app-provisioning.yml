@@ -1,15 +1,17 @@
 apiVersion: harness.io/v1
 kind: Workflow
 name: Java Spring Boot App Provisioning
-identifier: java_spring_boot_app_provisioning_workflow
+identifier: Java_Spring_Boot_App_Provisioning
 type: workflow
 owner: user:account/todd.parson@harness.io
+scope: PROJECT
 projectIdentifier: parson
 orgIdentifier: sandbox
 metadata:
   description: |
     Scaffolds a new Java Spring Boot app via Cookiecutter, commits to Git, and opens a PR.
     Runs a provisioning pipeline that consumes the cookiecutter variables below.
+  tags: []
   actionButton:
     text: Provision
 spec:
