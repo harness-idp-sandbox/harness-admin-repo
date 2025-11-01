@@ -10,5 +10,6 @@
     "author_name": "Harness",
     "docker_registry": "docker.io/parsontodd",
     "docker_image_name": "{{ cookiecutter.project_slug }}",
-    "k8s_namespace": "default"
+    "k8s_namespace": "default",
+    "connector_ref": "{{ cookiecutter.connector_ref }}"
 }
