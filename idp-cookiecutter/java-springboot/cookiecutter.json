@@ -8,7 +8,7 @@
     "package_path": "{{ cookiecutter.group_id.replace('.', '/') }}/{{ cookiecutter.package_name }}",
     "artifact_id": "{{ cookiecutter.project_slug }}",
     "version": "1.0-SNAPSHOT",
-    "author_name": "Harness",
+    "project_owner": "Harness",
     "docker_registry": "docker.io/parsontodd",
     "docker_image_name": "{{ cookiecutter.project_slug }}",
     "k8s_namespace": "default",
