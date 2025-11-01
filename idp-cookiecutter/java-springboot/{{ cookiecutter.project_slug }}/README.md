@@ -1,6 +1,6 @@
-# { cookiecutter.project_name }
+# {{ cookiecutter.project_name }}
 
-{ cookiecutter.description }
+{{ cookiecutter.description }}
 
 ---
 
@@ -32,7 +32,7 @@
 mvn clean package -DskipTests
 
 # run app
-java -jar target/{ cookiecutter.artifact_id }-{ cookiecutter.version }.jar
+java -jar target/{{ cookiecutter.artifact_id }}-{{ cookiecutter.version }}.jar
 
 # open in browser
 open http://localhost:8080/
@@ -53,7 +53,7 @@ The runtime image expects the fat jar to be present (built with the command abov
 
 ```bash
 # build & push for EKS (linux/amd64)
-docker buildx build   --platform linux/amd64   -t { cookiecutter.docker_registry }/{ cookiecutter.docker_image_name }:latest   --push .
+docker buildx build   --platform linux/amd64   -t {{ cookiecutter.docker_registry }}/{ cookiecutter.docker_image_name }}:latest   --push .
 ```
 
 > Tip: If you’re using a private registry, make sure your cluster has the right imagePullSecret.
@@ -64,17 +64,17 @@ docker buildx build   --platform linux/amd64   -t { cookiecutter.docker_registry
 
 ```bash
 # namespace (templated)
-kubectl get ns { cookiecutter.k8s_namespace } >/dev/null 2>&1 || kubectl create ns { cookiecutter.k8s_namespace }
+kubectl get ns {{ cookiecutter.k8s_namespace }} >/dev/null 2>&1 || kubectl create ns {{ cookiecutter.k8s_namespace }}
 
 # apply manifests
 kubectl apply -f kubernetes/service.yml
 kubectl apply -f kubernetes/deployment.yml
 
 # watch rollout
-kubectl rollout status deploy/{ cookiecutter.artifact_id } -n { cookiecutter.k8s_namespace }
+kubectl rollout status deploy/{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
 
 # get external endpoint
-kubectl get svc { cookiecutter.artifact_id }-svc -n { cookiecutter.k8s_namespace }
+kubectl get svc {{ cookiecutter.artifact_id }}-svc -n {{ cookiecutter.k8s_namespace }}
 ```
 
 When the `EXTERNAL-IP` is ready, open:
@@ -84,7 +84,7 @@ http://<EXTERNAL-IP>/
 
 If you’re in a cluster without external LoadBalancers, port-forward instead:
 ```bash
-kubectl port-forward svc/{ cookiecutter.artifact_id }-svc 8080:80 -n { cookiecutter.k8s_namespace }
+kubectl port-forward svc/{{ cookiecutter.artifact_id }}-svc 8080:80 -n {{ cookiecutter.k8s_namespace }}
 # then visit http://localhost:8080/
 ```
 
@@ -95,10 +95,10 @@ kubectl port-forward svc/{ cookiecutter.artifact_id }-svc 8080:80 -n { cookiecut
 This repo ships with `:latest` and `imagePullPolicy: Always`, so you don’t need to edit YAML on each build. After pushing a new image, just restart the deployment:
 
 ```bash
-docker buildx build --platform linux/amd64 -t { cookiecutter.docker_registry }/{ cookiecutter.docker_image_name }:latest --push .
+docker buildx build --platform linux/amd64 -t {{ cookiecutter.docker_registry }/{ cookiecutter.docker_image_name }}:latest --push .
 
-kubectl rollout restart deploy/{ cookiecutter.artifact_id } -n { cookiecutter.k8s_namespace }
-kubectl rollout status deploy/{ cookiecutter.artifact_id } -n { cookiecutter.k8s_namespace }
+kubectl rollout restart deploy/{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
+kubectl rollout status deploy/{ cookiecutter.artifact_id }} -n {{ cookiecutter.k8s_namespace }}
 ```
 
 ---
@@ -136,17 +136,17 @@ mvn test
 ## 📦 Project Layout
 
 ```
-{ cookiecutter.project_slug }/
+{{ cookiecutter.project_slug }}/
 ├─ src/
 │  ├─ main/
-│  │  ├─ java/{ cookiecutter.package_path }/
+│  │  ├─ java/{{ cookiecutter.package_path }}/
 │  │  │  ├─ App.java
 │  │  │  └─ HelloController.java
 │  │  └─ resources/
 │  │     └─ static/
 │  │        └─ index.html
 │  └─ test/
-│     └─ java/{ cookiecutter.package_path }/AppTest.java
+│     └─ java/{{ cookiecutter.package_path }}/AppTest.java
 ├─ kubernetes/
 │  ├─ deployment.yml
 │  └─ service.yml
@@ -167,4 +167,4 @@ mvn test
 
 ## 📝 License
 
-© { cookiecutter.author_name }. For demo/PoV purposes.
+© {{ cookiecutter.author_name }}. For demo/PoV purposes.
