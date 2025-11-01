@@ -111,7 +111,7 @@ server.port=8080
 management.endpoints.web.exposure.include=health,info
 management.info.git.mode=full
 info.app.name={{ cookiecutter.package_name }}
-info.app.description={{ cookiecutter.description }}
+info.app.description={{ cookiecutter.project_description }}
 ```
 
 Env vars used by the container (set in the Deployment):
@@ -167,4 +167,4 @@ mvn test
 
 ## 📝 License
 
-© {{ cookiecutter.author_name }}. For demo/PoV purposes.
+© {{ cookiecutter.project_owner }}. For demo/PoV purposes.
