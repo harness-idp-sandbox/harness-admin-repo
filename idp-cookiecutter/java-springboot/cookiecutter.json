@@ -5,13 +5,13 @@
     "idp_identifier": "{{ cookiecutter.project_name | slugify | replace('-', '_') }}",
     "package_name": "{{ cookiecutter.project_name|lower|replace(' ', '') }}",
     "group_id": "com.harness",
-    "package_path": "{{ cookiecutter.group_id.replace('.', '/') }}/{{ cookiecutter.package_name }}",
+    "package_path": "{{ cookiecutter.group_id | replace('.', '/') }}/{{ cookiecutter.package_name }}",
     "artifact_id": "{{ cookiecutter.project_slug }}",
     "version": "1.0-SNAPSHOT",
     "project_owner": "Harness",
     "docker_registry": "docker.io/parsontodd",
     "docker_image_name": "{{ cookiecutter.project_slug }}",
     "k8s_namespace": "default",
-    "connector_ref": "{{ cookiecutter.connector_ref }}",
-    "github_org": "{{ cookiecutter.github_org }}",
+    "connector_ref": "IDP_GitHub_Sandbox_for_Testing",
+    "github_org": "harness-idp-sandbox"
 }

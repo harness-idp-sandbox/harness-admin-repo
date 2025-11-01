@@ -24,7 +24,7 @@ metadata:
   description: {{ cookiecutter.project_description }}
   annotations:
     # TechDocs looks inside the app repo for this monorepo
-    backstage.io/techdocs-ref: dir:{{ cookiecutter.project_slug }}
+    backstage.io/techdocs-ref: dir:.
 
     # Helpful for plugins/deeplinks
     github.com/project-slug: {{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}
@@ -33,7 +33,7 @@ metadata:
 
     # Optional direct link to this app folder on default branch
     backstage.io/source-location: >-
-      url:https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}/tree/main/{{ cookiecutter.project_slug }}
+      url:https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}/tree/main
 
   links:
     - title: Source repository
