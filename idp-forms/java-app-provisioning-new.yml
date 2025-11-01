@@ -1,0 +1,82 @@
+apiVersion: harness.io/v1
+kind: Workflow
+name: Java Spring Boot App Provisioning
+identifier: Java_Spring_Boot_App_Provisioning
+type: workflow
+owner: user:account/todd.parson@harness.io
+projectIdentifier: parson
+orgIdentifier: sandbox
+metadata:
+  description: |
+    Scaffolds a new Java Spring Boot app according to enterprise standards.
+    Build and deploys a sample app with Getting Started guidance for next steps.
+  actionButton:
+    text: Provision
+spec:
+  output:
+    links:
+      - title: Pipeline Details
+        url: ${{ steps.trigger.output.PipelineUrl }}
+      - title: New Branch URL
+        url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Create_Branch.output.outputVariables.BRANCH_URL'] }}
+      - title: PR URL
+        url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Open_PR.output.outputVariables.PR_URL'] }}
+  parameters:
+    - title: Application Details
+      required:
+        - project_name
+        - group_id
+        - version
+      properties:
+        project_name:
+          title: Application Name
+          type: string
+          description: Human-readable name (e.g., “Sample Java App”).
+          minLength: 3
+          maxLength: 60
+          pattern: ^[A-Za-z0-9][A-Za-z0-9 _-]*[A-Za-z0-9]$
+          ui:options:
+            placeholder: Sample Java App
+            help: Letters/numbers/spaces/dash/underscore; no leading/trailing spaces.
+        project_description:
+          title: Application Description
+          type: string
+          default: A sample Java application built with Spring Boot
+        author_name:
+          title: Author/Owner
+          type: string
+          default: Harness
+        group_id:
+          title: Maven Group ID
+          type: string
+          default: com.harness
+          pattern: ^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$
+          ui:options:
+            help: Standard Java package group (e.g., com.example.platform).
+        version:
+          title: Initial Version
+          type: string
+          default: 1.0-SNAPSHOT
+          pattern: ^[0-9A-Za-z._-]+$
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+  steps:
+    - id: trigger
+      name: Provision Java App
+      action: trigger:harness-custom-pipeline
+      input:
+        url: https://app.harness.io/ng/#/account/EeRjnXTnS4GrLG5VNNJZUw/orgs/sandbox/projects/parson/pipelines/Java_App_Provisioner/executions
+        apikey: ${{ parameters.token }}
+        inputset:
+          project_name: ${{ parameters.project_name }}
+          project_description: ${{ parameters.project_description }}
+          project_slug: ${{ parameters.project_slug }}
+          package_name: ${{ parameters.package_name }}
+          group_id: ${{ parameters.group_id }}
+          package_path: ${{ parameters.package_path }}
+          artifact_id: ${{ parameters.artifact_id }}
+          version: ${{ parameters.version }}
+        showOutputVariables: true
