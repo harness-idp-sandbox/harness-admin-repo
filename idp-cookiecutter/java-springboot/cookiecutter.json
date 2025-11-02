@@ -11,7 +11,7 @@
   "project_owner": "Harness",
   "docker_registry": "pkg.harness.io",
   "docker_image_name": "{{ cookiecutter.project_slug }}",
-  "k8s_namespace": "default",
+  "k8s_namespace": "dev",
   "connector_ref": "parsonghharnessidpsandbox",
   "github_org": "harness-idp-sandbox",
   "account_identifier": "EeRjnXTnS4GrLG5VNNJZUw",
@@ -19,8 +19,7 @@
   "project_identifier": "parson",
   "account_name": "harness",
   "docker_connector_ref": "parson-dev",
-  "service_identifier": "{{ cookiecutter.project_slug | replace('-', '_') }}",
-
+  "service_identifier": "{{ cookiecutter.project_slug | replace('-', '') }}",
   "_copy_without_render": [
     "infra/kubernetes/**",
     "charts/**",
