@@ -30,13 +30,32 @@ resource "harness_platform_service" "svc" {
       serviceDefinition:
         type: Kubernetes
         spec:
+          manifest:
+            identifier: manifest
+            type: K8sManifest
+            spec:
+              store:
+                connectorRef: ${var.connector_ref}
+                gitFetchType: Branch
+                paths:
+                  - infra/kubernetes/deployment.yml
+                  - infra/kubernetes/service.yml
+                  - infra/kubernetes/servicemonitor.yml
+                repoName: ${var.repo_name}
+                branch: main
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false
+              optionalValuesYaml: false
           artifacts:
             primary:
-              type: DockerRegistry
-              spec:
-                connectorRef: ${var.docker_connector_ref}
-                imagePath: ${var.image_repo}
-                tag: ${var.image_tag}
+              primaryArtifactRef: <+input>
+              sources:
+                - identifer: ${var.service_id}
+                  type: Har
+                  spec:
+                    registryRef: ${var.docker_connector_ref}
+                    type: docker
+                    spec:
       gitOpsEnabled: false
   YAML
 }
