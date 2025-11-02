@@ -31,17 +31,13 @@ metadata:
     backstage.io/techdocs-ref: dir:.
 
     # Helpful for plugins/deeplinks
-    github.com/project-slug: {{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}
+    github.com/project-slug: {{ cookiecutter.account_name }}-{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}
     # ATTENTION: UNCOMMENT THIS TO CONFIGURE THE GITHUB PLUGIN
-    # github.com/project-readme-path: {{ cookiecutter.project_slug }}
-
-    # Optional direct link to this app folder on default branch
-    backstage.io/source-location: >-
-      url:https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}/tree/main
+    github.com/project-readme-path: {{ cookiecutter.project_slug }}
 
   links:
     - title: Source repository
-      url: https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}
+      url: https://github.com/{{ cookiecutter.account_name }}-{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}
     # ATTENTION: OBTAIN THE WEBSITE URL, REPLACE IT BELOW, AND UNCOMMENT THESE LINES.
     # - title: Website URL
     #   url: REPLACE_THIS_WITH_THE_GHA_OUTPUT_URL

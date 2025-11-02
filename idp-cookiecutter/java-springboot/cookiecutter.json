@@ -14,6 +14,8 @@
     "k8s_namespace": "default",
     "connector_ref": "IDP_GitHub_Sandbox_for_Testing",
     "github_org": "harness-idp-sandbox",
-    "org_identifier": "sandbox",
-    "project_identifier": "parson"
+    "account_identifier": "default",
+    "org_identifier": "default",
+    "project_identifier": "Default_Project",
+    "account_name": "harness"
 }
