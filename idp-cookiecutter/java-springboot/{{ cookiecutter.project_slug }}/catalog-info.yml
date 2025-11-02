@@ -31,13 +31,18 @@ metadata:
     backstage.io/techdocs-ref: dir:.
 
     # Helpful for plugins/deeplinks
-    github.com/project-slug: {{ cookiecutter.account_name }}-{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}
+    github.com/project-slug: {{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     # ATTENTION: UNCOMMENT THIS TO CONFIGURE THE GITHUB PLUGIN
-    github.com/project-readme-path: {{ cookiecutter.project_slug }}
+    github.com/project-readme-path: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+
+    sonarqube.org/project-key: {{ cookiecutter.github_org }}_{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+    sonarqube.org/project-name: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+
+    backstage.io/kubernetes-label-selector: 'app={{ cookiecutter.service_identifier }}'
 
   links:
     - title: Source repository
-      url: https://github.com/{{ cookiecutter.account_name }}-{{ cookiecutter.github_org }}/{{ cookiecutter.project_slug }}
+      url: https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     # ATTENTION: OBTAIN THE WEBSITE URL, REPLACE IT BELOW, AND UNCOMMENT THESE LINES.
     # - title: Website URL
     #   url: REPLACE_THIS_WITH_THE_GHA_OUTPUT_URL
@@ -49,7 +54,7 @@ spec:
   lifecycle: experimental
   sourceCode:
     provider: Github
-    repoName: {{ cookiecutter.project_slug }}
+    repoName: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     connectorRef: {{ cookiecutter.connector_ref }}
     branch: main
     monoRepo: false

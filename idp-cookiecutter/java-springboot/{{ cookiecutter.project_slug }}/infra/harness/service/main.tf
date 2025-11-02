@@ -54,13 +54,13 @@ resource "harness_platform_service" "svc" {
                       connectorRef: ${var.connector_ref}
                       gitFetchType: Branch
                       paths:
-                        - infra/harness/service/deployment.yml
-                        - infra/harness/service/service.yml
-                        - infra/harness/service/servicemonitor.yml
+                        - infra/kubernetes/deployment.yml
+                        - infra/kubernetes/service.yml
+                        - infra/kubernetes/servicemonitor.yml
                       repoName: ${var.repo_name}
                       branch: main
                   valuesPaths:
-                    - infra/harness/service/values.yml
+                    - infra/kubernetes/values.yml
                   skipResourceVersioning: false
                   enableDeclarativeRollback: false
                   optionalValuesYaml: false
