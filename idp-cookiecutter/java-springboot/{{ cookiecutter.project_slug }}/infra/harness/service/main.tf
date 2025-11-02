@@ -15,10 +15,10 @@ provider "harness" {
 }
 
 resource "harness_platform_service" "svc" {
-  org_id     = var.org_id
-  project_id = var.project_id
-  identifier = var.service_id
-  name       = var.service_name
+  org_id      = var.org_id
+  project_id  = var.project_id
+  identifier  = var.service_id
+  name        = var.service_name
   description = var.description
 
   yaml = <<-YAML
@@ -30,32 +30,40 @@ resource "harness_platform_service" "svc" {
       serviceDefinition:
         type: Kubernetes
         spec:
-          manifest:
-            identifier: manifest
-            type: K8sManifest
-            spec:
-              store:
-                connectorRef: ${var.connector_ref}
-                gitFetchType: Branch
-                paths:
-                  - infra/kubernetes/deployment.yml
-                  - infra/kubernetes/service.yml
-                  - infra/kubernetes/servicemonitor.yml
-                repoName: ${var.repo_name}
-                branch: main
-              skipResourceVersioning: false
-              enableDeclarativeRollback: false
-              optionalValuesYaml: false
           artifacts:
             primary:
               primaryArtifactRef: <+input>
               sources:
-                - identifer: ${var.service_id}
+                - identifier: ${var.service_id}
                   type: Har
                   spec:
                     registryRef: ${var.docker_connector_ref}
                     type: docker
                     spec:
+                      imagePath: ${var.image_name}
+                      digest: ""
+                      tag: ${var.image_tag}
+          manifests:
+            - manifest:
+                identifier: manifest
+                type: K8sManifest
+                spec:
+                  store:
+                    type: Github
+                    spec:
+                      connectorRef: ${var.connector_ref}
+                      gitFetchType: Branch
+                      paths:
+                        - infra/harness/service/deployment.yml
+                        - infra/harness/service/service.yml
+                        - infra/harness/service/servicemonitor.yml
+                      repoName: ${var.repo_name}
+                      branch: main
+                  valuesPaths:
+                    - infra/harness/service/values.yml
+                  skipResourceVersioning: false
+                  enableDeclarativeRollback: false
+                  optionalValuesYaml: false
       gitOpsEnabled: false
   YAML
 }

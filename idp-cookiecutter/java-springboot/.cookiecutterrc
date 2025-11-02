@@ -1,0 +1,12 @@
+default_context:
+  project_name: "Parson Test Four"
+  project_description: "A sample Java application built with Spring Boot"
+  github_org: "harness-idp-sandbox"
+  docker_registry: "docker.io/parsontodd"
+  connector_ref: "parsonghharnessidpsandbox"
+  docker_connector_ref: "parson-dev"
+  k8s_namespace: "default"
+  account_identifier: "EeRjnXTnS4GrLG5VNNJZUw"
+  org_identifier: "sandbox"
+  project_identifier: "parson"
+  account_name: "harness"

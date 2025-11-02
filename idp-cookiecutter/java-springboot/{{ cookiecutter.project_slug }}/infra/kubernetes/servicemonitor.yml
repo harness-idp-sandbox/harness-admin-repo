@@ -1,19 +1,21 @@
 # kubernetes/servicemonitor.yml
+{{- if .Values.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ cookiecutter.artifact_id }}
-  namespace: tools
+  name: {{ lower .Values.name }}
+  namespace: {{ .Values.serviceMonitor.toolsNamespace | default "tools" }}
   labels:
-    release: monitoring                  # must match your Helm release name
+    release: {{ .Values.serviceMonitor.releaseLabel | default "monitoring" }}
 spec:
   selector:
     matchLabels:
-      app: {{ cookiecutter.artifact_id }}  # label on your Service
+      app: {{ lower .Values.name }}
   namespaceSelector:
     matchNames:
-      - {{ cookiecutter.k8s_namespace }}   # your app namespace
+      - {{ .Values.namespace }}
   endpoints:
-    - port: http                           # matches the Service port name
+    - port: http
       path: /actuator/prometheus
-      interval: 15s
+      interval: {{ .Values.serviceMonitor.scrapeInterval | default "15s" }}
+{{- end }}
