@@ -17,5 +17,7 @@
     "account_identifier": "default",
     "org_identifier": "default",
     "project_identifier": "Default_Project",
-    "account_name": "harness"
+    "account_name": "harness",
+    "docker_connector_ref": "parson-dev",
+    "service_identifier": "{{ cookiecutter.project_slug | replace('-', '_') }}"
 }
