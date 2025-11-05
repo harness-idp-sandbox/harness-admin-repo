@@ -1,65 +1,54 @@
-# Cookiecutter-rendered catalog definition for Harness IDP 2.0
-# Docs: IDP 2.0 entity schema & fields (identifier/name/type/owner). TechDocs annotation. 
-# - https://developer.harness.io/docs/internal-developer-portal/catalog/catalog-yaml/
-# - https://developer.harness.io/docs/internal-developer-portal/techdocs/enable-docs/
-
 apiVersion: harness.io/v1
 kind: Component
+# Common types: service | library | docs | delegate
+type: service
 
 # Machine-friendly unique key
 identifier: {{ cookiecutter.idp_identifier }}
 
-# Update the scope and org/project identifiers to match the Harness environment
-scope: PROJECT
-orgIdentifier: {{ cookiecutter.org_identifier }}
-projectIdentifier: {{ cookiecutter.project_identifier }}
-
 # Human display name
 name: {{ cookiecutter.project_name }}
-
-# Common types: service | library | docs | delegate
-type: service
 
 # Owner can be user or group (e.g., group:platform-team)
 owner: user:account/{{ cookiecutter.project_owner }}
 
-metadata:
-  namespace: default
-  description: {{ cookiecutter.project_description }}
-  annotations:
-    # TechDocs looks inside the app repo for this monorepo
-    backstage.io/techdocs-ref: dir:.
+# Update the scope and org/project identifiers to match the Harness environment
+orgIdentifier: {{ cookiecutter.org_identifier }}
+projectIdentifier: {{ cookiecutter.project_identifier }}
 
-    # Helpful for plugins/deeplinks
-    github.com/project-slug: {{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
-    # ATTENTION: UNCOMMENT THIS TO CONFIGURE THE GITHUB PLUGIN
-    github.com/project-readme-path: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
-
-    sonarqube.org/project-key: {{ cookiecutter.github_org }}_{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
-    sonarqube.org/project-name: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
-
-    backstage.io/kubernetes-label-selector: 'app={{ cookiecutter.service_identifier }}'
-
-  links:
-    - title: Source repository
-      url: https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
-    # ATTENTION: OBTAIN THE WEBSITE URL, REPLACE IT BELOW, AND UNCOMMENT THESE LINES.
-    # - title: Website URL
-    #   url: REPLACE_THIS_WITH_THE_GHA_OUTPUT_URL
-
-  tags:
-    - java
-    
 spec:
-  lifecycle: experimental
+  lifecycle: development
   sourceCode:
     provider: Github
     repoName: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     connectorRef: {{ cookiecutter.connector_ref }}
     branch: main
     monoRepo: false
-  # Add relationships later if/when they exist:
-  # dependsOn:
-  #   - component:default/some-backend
-  # providesApis:
-  #   - api:default/{{ cookiecutter.project_slug }}-api
+    url: https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}/tree/main
+metadata:
+  annotations:
+    #backstage.io/techdocs-ref: dir:.
+    # Helpful for plugins/deeplinks
+    github.com/project-slug: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+    
+    #Grafana dashboards
+    grafana/dashboard-selector: "folderUrl == 'http://ad22550bc83bc440694eb9a51da66f49-390405079.us-east-1.elb.amazonaws.com/dashboards/f/bf34szb60u2gwe/harness'"
+    grafana/overview-dashboard: 'http://ad22550bc83bc440694eb9a51da66f49-390405079.us-east-1.elb.amazonaws.com/d/19a44328-b2d2-4fb2-bfa3-d379d069124a/jvm-micrometer?orgId=1&kiosk'
+    
+    #Sonar dashboard
+    sonarqube.org/project-key: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+    
+    #Kubernetes dashboard
+    backstage.io/kubernetes-label-selector: 'app={{ cookiecutter.service_identifier }}'
+    
+    #Harness CI/CD dashboard
+    harness.io/pipelines: |
+      Build and Deploy: https://app.harness.io/ng/account/EeRjnXTnS4GrLG5VNNJZUw/all/orgs/sandbox/projects/parson/pipelines/Java_App_Provisioner/pipeline-studio/?storeType=INLINE
+    
+    #Harness STO dashboard
+    harness.io/sto-test-target:
+      - name: {{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+        scope: {{ cookiecutter.org_identifier }}.{{ cookiecutter.project_identifier }}
+
+  tags:
+  - java
