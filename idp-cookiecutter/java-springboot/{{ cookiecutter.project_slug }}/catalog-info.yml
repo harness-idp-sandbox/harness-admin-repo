@@ -27,7 +27,7 @@ spec:
     url: https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}/tree/main
 metadata:
   annotations:
-    #backstage.io/techdocs-ref: dir:.
+    backstage.io/techdocs-ref: dir:.
     # Helpful for plugins/deeplinks
     github.com/project-slug: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     
