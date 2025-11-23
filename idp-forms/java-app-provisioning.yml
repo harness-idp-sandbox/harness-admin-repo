@@ -79,7 +79,7 @@ spec:
     name: Provision Java App
     action: trigger:harness-custom-pipeline
     input:
-      url: https://app.harness.io/ng/account/EeRjnXTnS4GrLG5VNNJZUw/module/ci/orgs/sandbox/projects/parson/pipelines/Java_App_Provisioner/pipeline-studio/?storeType=INLINE
+      url: https://app.harness.io/ng/account/EeRjnXTnS4GrLG5VNNJZUw/all/orgs/sandbox/projects/parson/pipelines/Java_App_Provisioner/pipeline-studio/?storeType=INLINE
       apikey: ${{ parameters.token }}
       inputset:
         project_name: ${{ parameters.project_name }}
