@@ -34,15 +34,13 @@ resource "harness_platform_service" "svc" {
             primary:
               primaryArtifactRef: <+input>
               sources:
-                - identifier: ${var.service_id}
-                  type: Har
-                  spec:
-                    registryRef: ${var.docker_connector_ref}
-                    type: docker
-                    spec:
-                      imagePath: ${var.image_name}
-                      digest: ""
-                      tag: ${var.image_tag}
+                - spec:
+                    connectorRef: ${var.docker_connector_ref}
+                    imagePath: ${var.image_repo}/${var.image_name}
+                    tag: ${var.image_tag}
+                    digest: ""
+                  identifier: ${var.service_id}
+                  type: DockerRegistry
           manifests:
             - manifest:
                 identifier: manifest

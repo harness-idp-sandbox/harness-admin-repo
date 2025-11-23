@@ -26,14 +26,18 @@ spec:
     monoRepo: false
     url: https://github.com/{{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}/tree/main
 metadata:
+  links:
+    - title: Website
+      url: http://harness.io #Update with your app website
+
   annotations:
     backstage.io/techdocs-ref: dir:.
     # Helpful for plugins/deeplinks
     github.com/project-slug: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     
     #Grafana dashboards
-    grafana/dashboard-selector: "folderUrl == 'http://ad22550bc83bc440694eb9a51da66f49-390405079.us-east-1.elb.amazonaws.com/dashboards/f/bf34szb60u2gwe/harness'"
-    grafana/overview-dashboard: 'http://ad22550bc83bc440694eb9a51da66f49-390405079.us-east-1.elb.amazonaws.com/d/19a44328-b2d2-4fb2-bfa3-d379d069124a/jvm-micrometer?orgId=1&kiosk'
+    grafana/dashboard-selector: "folderUrl == 'https://100.25.3.28.sslip.io/dashboards/f/bf34szb60u2gwe/harness'"
+    grafana/overview-dashboard: 'https://100.25.3.28.sslip.io/d/19a44328-b2d2-4fb2-bfa3-d379d069124a/jvm-micrometer?orgId=1&kiosk&var-application={{ cookiecutter.project_slug }}'
     
     #Sonar dashboard
     sonarqube.org/project-key: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
@@ -46,9 +50,9 @@ metadata:
       Build and Deploy: https://app.harness.io/ng/account/EeRjnXTnS4GrLG5VNNJZUw/all/orgs/sandbox/projects/parson/pipelines/Java_App_Provisioner/pipeline-studio/?storeType=INLINE
     
     #Harness STO dashboard
-    harness.io/sto-test-target:
-      - name: {{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
-        scope: {{ cookiecutter.org_identifier }}.{{ cookiecutter.project_identifier }}
+    #harness.io/sto-test-target:
+    #  - name: {{ cookiecutter.github_org }}/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+    #    scope: {{ cookiecutter.org_identifier }}.{{ cookiecutter.project_identifier }}
 
   tags:
   - java

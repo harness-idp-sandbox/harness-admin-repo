@@ -1,172 +1,104 @@
-# idp-forms/java-app-provisioning.yml
 apiVersion: harness.io/v1
 kind: Workflow
-name: Java Spring Boot App Provisioning
-identifier: Java_Spring_Boot_App_Provisioning
 type: workflow
+identifier: Provision_Java_App
+name: Provision Java App
 owner: user:account/todd.parson@harness.io
-scope: PROJECT
-projectIdentifier: parson
 orgIdentifier: sandbox
-metadata:
-  description: |
-    Scaffolds a new Java Spring Boot app via Cookiecutter, commits to Git, and opens a PR.
-    Runs a provisioning pipeline that consumes the cookiecutter variables below.
-  tags: []
-  actionButton:
-    text: Provision
+projectIdentifier: parson
 spec:
   output:
     links:
-      - title: Pipeline Details
-        url: ${{ steps.trigger.output.PipelineUrl }}
-      - title: New Branch URL
-        url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Create_Branch.output.outputVariables.BRANCH_URL'] }}
-      - title: PR URL
-        url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Open_PR.output.outputVariables.PR_URL'] }}
-
+    - title: Pipeline Details
+      url: ${{ steps.trigger.output.PipelineUrl }}
+    - title: Catalog (if registered)
+      url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Register_Component.output.outputVariables.CATALOG_URL'] }}
   parameters:
-    - title: Application Details
-      required:
-        - project_name
-        - group_id
-        - version
-      properties:
-        project_name:
-          title: Application Name
-          type: string
-          description: Human-readable name (e.g., “Sample Java App”).
-          minLength: 3
-          maxLength: 60
-          pattern: ^[A-Za-z0-9][A-Za-z0-9 _-]*[A-Za-z0-9]$
-        project_description:
-          title: Application Description
-          type: string
-          default: A sample Java application built with Spring Boot
-        author_name:
-          title: Author/Owner
-          type: string
-          default: Harness
-        group_id:
-          title: Maven Group ID
-          type: string
-          default: com.harness
-          pattern: ^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$
-        version:
-          title: Initial Version
-          type: string
-          default: 1.0-SNAPSHOT
-          pattern: ^[0-9A-Za-z._-]+$
-
-    - title: Derived & Naming (override if you need to)
-      properties:
-        project_slug:
-          title: Project Slug
-          type: string
-          description: Defaults to lowercased project name with spaces replaced by dashes.
-          default: ""
-        package_name:
-          title: Package Name
-          type: string
-          description: Defaults to lowercased project name with spaces removed.
-          default: ""
-        artifact_id:
-          title: Maven Artifact ID
-          type: string
-          description: Defaults to project_slug.
-          default: ""
-        package_path:
-          title: Package Path
-          type: string
-          description: Defaults to group_id as path + '/' + package_name.
-          default: ""
-
-    - title: Container & Runtime
-      properties:
-        docker_registry:
-          title: Docker Registry
-          type: string
-          default: docker.io/parsontodd
-        docker_image_name:
-          title: Docker Image Name
-          type: string
-          description: Defaults to project_slug.
-          default: ""
-        k8s_namespace:
-          title: Kubernetes Namespace
-          type: string
-          default: default
-          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
-
-    - title: Repository & Branching
-      required:
-        - github_username
-      properties:
-        github_username:
-          title: GitHub Username
-          description: Enter your GitHub handle (no '@').
-          type: string
-          pattern: ^[A-Za-z0-9-]+$
-          minLength: 1
-          maxLength: 39
-        repo_owner:
-          title: Repository Owner / Org
-          type: string
-          description: e.g., harness-idp-patterns
-        repository:
-          title: Repo Name
-          type: string
-          description: e.g., team-iac-monorepo
-        default_branch:
-          title: Default Branch
-          type: string
-          default: main
-        visibility:
-          title: Visibility
-          type: string
-          default: private
-        new_branch_prefix:
-          title: Branch naming prefix
-          description: Used for the new feature branch.
-          type: string
-          default: feature
-          pattern: ^[a-z0-9][a-z0-9._-]{1,20}$
-
-    - title: Auth
-      required:
-        - token
-      properties:
-        token:
-          title: Harness Token
-          type: string
-          ui:widget: password
-          ui:field: HarnessAuthToken
-
+  - title: Application Details
+    required:
+    - project_name
+    - project_owner
+    properties:
+      project_name:
+        title: Application Name
+        type: string
+        description: Human-readable name (e.g., Java Parson One”).
+        minLength: 3
+        maxLength: 50
+        pattern: ^[A-Za-z]+(?:[ _-][A-Za-z]+)*$
+        ui:options:
+          placeholder: Java Parson One
+          help: Letters/spaces/dash/underscore; no leading/trailing spaces.
+      project_owner:
+        title: App Owner (email)
+        type: string
+        format: email
+        default: todd.parson@harness.io
+      project_description:
+        title: App Description
+        type: string
+        default: A sample Java application built with Spring Boot
+  # - title: Platform & Integrations
+  #   properties:
+  #     gh_org:
+  #       title: GitHub Org
+  #       type: string
+  #       default: harness-idp-sandbox
+  #     connector_ref:
+  #       title: Harness GitHub Connector (identifier)
+  #       type: string
+  #       default: githubharness
+  #     k8s_namespace:
+  #       title: Kubernetes Namespace
+  #       type: string
+  #       default: dev
+  #     sonar_url:
+  #       title: SonarQube URL
+  #       type: string
+  #       default: http://a318717c058b64c32bc88e3ec5b37edc-ae82f49ebe3b52d0.elb.us-east-1.amazonaws.com:9000
+  - title: Options
+    properties:
+      testing:
+        title: Dry run only?
+        type: string
+        enum:
+        - 'yes'
+        - 'no'
+        default: 'no'
+      register_component:
+        title: Automatically register in the IDP catalog
+        type: boolean
+        default: false
+      token:
+        title: Harness Token
+        type: string
+        ui:widget: password
+        ui:field: HarnessAuthToken
   steps:
-    - id: trigger
-      name: Provision Java App
-      action: trigger:harness-custom-pipeline
-      input:
-        url: https://app.harness.io/ng/#/account/EeRjnXTnS4GrLG5VNNJZUw/orgs/sandbox/projects/parson/pipelines/Cookiecutter_Java_App_Provisioning/executions
-        apikey: ${{ parameters.token }}
-        inputset:
-          project_name:         ${{ parameters.project_name }}
-          project_description:  ${{ parameters.project_description }}
-          project_slug:         ${{ parameters.project_slug }}
-          package_name:         ${{ parameters.package_name }}
-          group_id:             ${{ parameters.group_id }}
-          package_path:         ${{ parameters.package_path }}
-          artifact_id:          ${{ parameters.artifact_id }}
-          version:              ${{ parameters.version }}
-          author_name:          ${{ parameters.author_name }}
-          docker_registry:      ${{ parameters.docker_registry }}
-          docker_image_name:    ${{ parameters.docker_image_name }}
-          k8s_namespace:        ${{ parameters.k8s_namespace }}
-
-          gh_org:               ${{ parameters.repo_owner }}
-          base_repo:            ${{ parameters.repository }}
-          default_branch:       ${{ parameters.default_branch }}
-          new_branch_prefix:    ${{ parameters.new_branch_prefix }}
-          github_username:      ${{ parameters.github_username }}
-
-        showOutputVariables: true
+  - id: trigger
+    name: Provision Java App
+    action: trigger:harness-custom-pipeline
+    input:
+      url: https://app.harness.io/ng/account/5QuKxj8iRwCGCJgp53CU1Q/all/orgs/Sandbox/projects/morningstar/pipelines/Java_App_Provisioner/pipeline-studio/?storeType=INLINE
+      apikey: ${{ parameters.token }}
+      inputset:
+        project_name: ${{ parameters.project_name }}
+        project_description: ${{ parameters.project_description }}
+        project_owner: ${{ parameters.project_owner }}
+        group_id: ${{ parameters.group_id }}
+        version: ${{ parameters.version }}
+        testing: ${{ parameters.testing }}
+        enforce_requestor_access: ${{ parameters.enforce_requestor_access }}
+        gh_org: ${{ parameters.gh_org }}
+        connector_ref: ${{ parameters.connector_ref }}
+        k8s_namespace: ${{ parameters.k8s_namespace }}
+        sonar_url: ${{ parameters.sonar_url }}
+        register_component: ${{ parameters.register_component and "true" or "false" }}
+      showOutputVariables: true
+metadata:
+  actionButton:
+    text: Provision
+  description: |
+    Scaffolds a new Java Spring Boot app via Cookiecutter, creates a GitHub repo,
+    optionally registers the component in IDP, builds & pushes an image, and deploys to Dev
+    using the Java_App_Provisioner pipeline.
