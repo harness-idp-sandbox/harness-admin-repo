@@ -40,7 +40,8 @@ metadata:
     grafana/overview-dashboard: 'https://100.25.3.28.sslip.io/d/19a44328-b2d2-4fb2-bfa3-d379d069124a/jvm-micrometer?orgId=1&kiosk&var-application={{ cookiecutter.project_slug }}'
     
     #Sonar dashboard
-    sonarqube.org/project-key: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
+    #Update if not using 'parson' Sonar instance
+    sonarqube.org/project-key: parson/{{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     
     #Kubernetes dashboard
     backstage.io/kubernetes-label-selector: 'app={{ cookiecutter.service_identifier }}'
