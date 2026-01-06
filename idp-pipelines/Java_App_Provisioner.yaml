@@ -1,0 +1,645 @@
+pipeline:
+  name: Java App Provisioner
+  identifier: Java_App_Provisioner
+  projectIdentifier: parson
+  orgIdentifier: sandbox
+  tags: {}
+  stages:
+    - stage:
+        name: App Provisioner
+        identifier: App_Provisioner
+        description: ""
+        type: IDP
+        spec:
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Setup_Pipeline
+                  identifier: Setup_Pipeline
+                  spec:
+                    shell: Bash
+                    command: |-
+                      set -euo pipefail
+
+                        NAME="<+pipeline.variables.project_name>"
+                        GROUP_ID="<+pipeline.variables.group_id>"
+
+                        echo "🔹 Raw Inputs"
+                        echo "  project_name: ${NAME}"
+                        echo "  group_id: ${GROUP_ID}"
+
+                        # project_slug: kebab-case
+                        PROJECT_SLUG="$(printf '%s' "$NAME" \
+                          | tr '[:upper:]' '[:lower:]' \
+                          | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' \
+                          | cut -c1-63)"
+
+                        # service_identifier: letters/digits only
+                        SERVICE_IDENTIFIER="$(printf '%s' "$NAME" \
+                          | tr '[:upper:]' '[:lower:]' \
+                          | sed -E 's/[^a-z0-9]+//g' \
+                          | cut -c1-128)"
+
+                       # idp_identifier: slugify project_name, then convert '-' to '_'
+                        IDP_IDENTIFIER="$(printf '%s' "$NAME" \
+                          | tr '[:upper:]' '[:lower:]' \
+                          | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' \
+                          | tr '-' '_')"
+
+                        # package_name: same as service_identifier
+                        PACKAGE_NAME="${SERVICE_IDENTIFIER}"
+
+                        # package_path: group_id with dots -> slashes
+                        GROUP_PATH="${GROUP_ID//./\/}"
+                        PACKAGE_PATH="${GROUP_PATH}/${PACKAGE_NAME}"
+
+                        echo ""
+                        echo "🔹 Derived Variables"
+                        echo "  project_slug: ${PROJECT_SLUG}"
+                        echo "  service_identifier: ${SERVICE_IDENTIFIER}"
+                        echo "  idp_identifier: ${IDP_IDENTIFIER}"
+                        echo "  package_name: ${PACKAGE_NAME}"
+                        echo "  package_path: ${PACKAGE_PATH}"
+
+                        # ================= Catalog existence check =================
+                        API_KEY=<+pipeline.variables.harness_pat>
+                        ACCOUNT_ID=<+account.identifier>
+                        ORG_ID=<+org.identifier>
+                        PROJECT_ID=<+project.identifier>
+
+                        # ✅ use the derived SERVICE_IDENTIFIER here
+                        SERVICE_ID="${SERVICE_IDENTIFIER}"
+
+                        response=$(curl -s -o /dev/null -w "%{http_code}" \
+                          -X GET "https://app.harness.io/gateway/ng/api/servicesV2/${SERVICE_ID}?accountIdentifier=${ACCOUNT_ID}&orgIdentifier=${ORG_ID}&projectIdentifier=${PROJECT_ID}" \
+                          -H "x-api-key: ${API_KEY}" \
+                          -H "Content-Type: application/json")
+
+                        if [ "$response" = "200" ]; then
+                          EXISTS="true"
+                        else
+                          EXISTS="false"
+                        fi
+                        echo "Service already exists? $EXISTS"
+                    outputVariables:
+                      - name: PROJECT_SLUG
+                      - name: SERVICE_IDENTIFIER
+                      - name: PACKAGE_NAME
+                      - name: PACKAGE_PATH
+                      - name: EXISTS
+                      - name: IDP_IDENTIFIER
+              - step:
+                  type: GitClone
+                  name: Fetch Repo Template
+                  identifier: Fetch_Repo_Template
+                  spec:
+                    connectorRef: <+pipeline.variables.gh_connector_ref>
+                    repoName: <+pipeline.variables.account_name>-admin-repo
+                    cloneDirectory: /harness/cookiecutter
+                    build:
+                      type: branch
+                      spec:
+                        branch: main
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.EXISTS> == "false"
+              - step:
+                  type: CookieCutter
+                  name: Scaffold Repo
+                  identifier: Scaffold_Repo
+                  spec:
+                    templateType: private
+                    pathForTemplate: /harness/cookiecutter/idp-cookiecutter/java-springboot
+                    outputDirectory: /harness
+                    cookieCutterVariables:
+                      project_name: <+pipeline.variables.project_name>
+                      project_description: <+pipeline.variables.project_description>
+                      project_owner: <+pipeline.variables.project_owner>
+                      group_id: <+pipeline.variables.group_id>
+                      version: <+pipeline.variables.version>
+                      artifact_id: <+pipeline.variables.artifact_id>
+                      docker_registry: <+pipeline.variables.docker_registry>
+                      docker_image_name: <+pipeline.variables.docker_image_name>
+                      k8s_namespace: <+pipeline.variables.k8s_namespace>
+                      github_org: <+pipeline.variables.gh_org>
+                      connector_ref: <+pipeline.variables.gh_connector_ref>
+                      project_slug: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PROJECT_SLUG>
+                      org_identifier: <+org.identifier>
+                      project_identifier: <+project.identifier>
+                      account_name: <+pipeline.variables.account_name>
+                      docker_connector_ref: <+pipeline.variables.docker_connector_ref>
+                      service_identifier: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.SERVICE_IDENTIFIER>
+                      package_name: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PACKAGE_NAME>
+                      package_path: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PACKAGE_PATH>
+                      idp_identifier: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.IDP_IDENTIFIER>
+                    verbose: false
+                    overwriteIfExists: true
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.EXISTS> == "false"
+              - step:
+                  type: CreateRepo
+                  name: Create Repo
+                  identifier: Create_Repo
+                  spec:
+                    connectorType: Github
+                    connectorRef: <+pipeline.variables.gh_connector_ref>
+                    organization: <+pipeline.variables.gh_org>
+                    repository: <+pipeline.variables.account_name>-<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PROJECT_SLUG>
+                    repoType: public
+                    defaultBranch: main
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.EXISTS> == "false"
+                contextType: Pipeline
+              - step:
+                  type: DirectPush
+                  name: Push New Code
+                  identifier: Push_New_Code
+                  spec:
+                    connectorType: Github
+                    forcePush: true
+                    connectorRef: <+pipeline.variables.gh_connector_ref>
+                    organization: <+pipeline.variables.gh_org>
+                    repository: <+pipeline.variables.account_name>-<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PROJECT_SLUG>
+                    codeDirectory: /harness/<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PROJECT_SLUG>
+                    branch: main
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.EXISTS> == "false"
+              - step:
+                  type: Run
+                  name: Register IDP Component
+                  identifier: Register_Component
+                  spec:
+                    shell: Bash
+                    command: |-
+                      set -euo pipefail
+
+                      ACCOUNT="<+account.identifier>"
+                      ORG="<+org.identifier>"
+                      PROJECT="<+project.identifier>"
+                      GH="<+pipeline.variables.gh_connector_ref>"
+                      REPO="<+pipeline.variables.account_name>-<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PROJECT_SLUG>"
+                      PAT="<+pipeline.variables.harness_pat>"
+
+                      echo "ACCOUNT: ${ACCOUNT}"
+                      echo "ORG: ${ORG}"
+                      echo "PROJECT: ${PROJECT}"
+                      echo "GH: ${GH}"
+                      echo "REPO: ${REPO}"
+
+                      payload="$(jq -n \
+                        --arg connector_ref "${GH}" \
+                        --arg repo_name     "${REPO}" \
+                        --arg branch_name   "main" \
+                        --arg file_path     "catalog-info.yml" \
+                        --argjson is_harness_code_repo false \
+                        '{connector_ref:$connector_ref,repo_name:$repo_name,branch_name:$branch_name,file_path:$file_path,is_harness_code_repo:$is_harness_code_repo}')"
+
+                      curl -sS -i -X POST \
+                        "https://app.harness.io/v1/entities/import?orgIdentifier=${ORG}&projectIdentifier=${PROJECT}" \
+                        -H "Content-Type: application/json" \
+                        -H "Harness-Account: ${ACCOUNT}" \
+                        -H "x-api-key: ${PAT}" \
+                        --data-binary "${payload}"
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: MarkAsSuccess
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.variables.register_component> == "true"
+          cloneCodebase: false
+        tags: {}
+        when:
+          pipelineStatus: Success
+    - stage:
+        name: Build and Push
+        identifier: Build_and_Push
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Compile App
+                  identifier: Compile_App
+                  spec:
+                    shell: Bash
+                    command: mvn -B -DskipTests=false clean verify
+              - step:
+                  type: Sonarqube
+                  name: Sonar Scan
+                  identifier: Sonar_Scan
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: repository
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                      args:
+                        cli: "\"-D-Dsonar.projectName=<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PROJECT_SLUG>\" \"-Dsonar.sources=src/main/java\" \"-Dsonar.tests=src/test/java\" \"-Dsonar.junit.reportPaths=target/surefire-reports\""
+                    auth:
+                      access_token: <+secrets.getValue("sonar-pat")>
+                      domain: <+pipeline.variables.sonar_url>
+                      ssl: false
+                    tool:
+                      java:
+                        binaries: target/classes
+                      project_key: <+pipeline.variables.account_name>-<+pipeline.variables.project_slug>
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build and Push Image
+                  identifier: BuildAndPushDockerRegistry_1
+                  spec:
+                    connectorRef: <+pipeline.variables.docker_connector_ref>
+                    repo: <+pipeline.variables.docker_registry>/<+pipeline.variables.account_name>-<+pipeline.variables.docker_image_name>
+                    tags:
+                      - latest
+                    caching: true
+              - step:
+                  type: Run
+                  name: Create Harness Service
+                  identifier: Register_Harness_Service
+                  spec:
+                    shell: Bash
+                    command: |-
+                      set -euo pipefail
+                      cd infra/harness/service
+
+                      # Optional: override tag with your pipeline sequence, if desired
+                      # export IMAGE_TAG="build-<+pipeline.sequenceId>"
+
+                      ./run-tf.sh
+                    envVariables:
+                      HARNESS_ACCOUNT_ID: <+account.identifier>
+                      HARNESS_PLATFORM_API_KEY: <+pipeline.variables.harness_pat>
+                      HARNESS_ORG_ID: <+org.identifier>
+                      HARNESS_PROJECT_ID: <+project.identifier>
+                      SERVICE_IDENTIFIER: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.SERVICE_IDENTIFIER>
+                  when:
+                    stageStatus: Success
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.variables.testing> == "no"
+    - stage:
+        name: Deploy to Dev
+        identifier: Deploy_to_Dev
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.SERVICE_IDENTIFIER>
+            serviceInputs:
+              serviceDefinition:
+                type: Kubernetes
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: <+pipeline.variables.docker_image_name>
+                      sources: <+input>
+          execution:
+            steps:
+              - stepGroup:
+                  name: Canary Deployment
+                  identifier: canaryDeployment
+                  steps:
+                    - step:
+                        name: Canary Deployment
+                        identifier: canaryDeployment
+                        type: K8sCanaryDeploy
+                        timeout: 10m
+                        spec:
+                          instanceSelection:
+                            type: Count
+                            spec:
+                              count: 1
+                          skipDryRun: false
+                    - step:
+                        name: Canary Delete
+                        identifier: canaryDelete
+                        type: K8sCanaryDelete
+                        timeout: 10m
+                        spec: {}
+              - stepGroup:
+                  name: Primary Deployment
+                  identifier: primaryDeployment
+                  steps:
+                    - step:
+                        name: Rolling Deployment
+                        identifier: rollingDeployment
+                        type: K8sRollingDeploy
+                        timeout: 10m
+                        spec:
+                          skipDryRun: false
+              - step:
+                  type: ShellScript
+                  name: Fetch URL
+                  identifier: Fetch_URL
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          URL="http://$(kubectl get svc <+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.SERVICE_IDENTIFIER>-svc \
+                            -n <+pipeline.variables.k8s_namespace> \
+                            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+
+                          echo "$URL"
+                    environmentVariables: []
+                    outputVariables:
+                      - name: URL
+                        type: String
+                        value: URL
+                    delegateSelectors:
+                      - <+pipeline.variables.harness_delegate>
+                    outputAlias:
+                      scope: Pipeline
+                      key: URL
+                  timeout: 10m
+            rollbackSteps:
+              - step:
+                  name: Canary Delete
+                  identifier: rollbackCanaryDelete
+                  type: K8sCanaryDelete
+                  timeout: 10m
+                  spec: {}
+              - step:
+                  name: Rolling Rollback
+                  identifier: rollingRollback
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec: {}
+          environment:
+            environmentRef: <+pipeline.variables.harness_deployment_env_id>
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: <+pipeline.variables.harness_deployment_infra_id>
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.variables.testing> == "no"
+        delegateSelectors:
+          - <+pipeline.variables.harness_delegate>
+    - stage:
+        name: Clean Up
+        identifier: Clean_Up
+        description: ""
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  name: Proceed with Automated Cleanup
+                  identifier: Proceed_with_Automated_Cleanup
+                  type: HarnessApproval
+                  timeout: 12h
+                  spec:
+                    approvalMessage: Please approve to proceed with cleanup process to destroy the app that was created. If no action is taken, this will auto-destroy in 12 hours.
+                    includePipelineExecutionHistory: true
+                    approvers:
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                      userGroups:
+                        - account._account_all_users
+                    isAutoRejectEnabled: false
+                    approverInputs: []
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - Timeout
+                        action:
+                          type: MarkAsSuccess
+              - step:
+                  type: ShellScript
+                  name: Kubernetes Cleanup
+                  identifier: Kubernetes_Cleanup
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    delegateSelectors:
+                      - <+pipeline.variables.harness_delegate>
+                    source:
+                      type: Inline
+                      spec:
+                        script: |-
+                          set -euo pipefail
+
+                          NS="<+pipeline.variables.k8s_namespace>"
+                          APP="<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.SERVICE_IDENTIFIER>"
+
+                          echo "Starting cleanup for app: $APP in namespace: $NS"
+
+                          kubectl delete deployment -n "$NS" "${APP}-deployment" --ignore-not-found=true || echo "WARNING: Failed to delete deployment '${APP}-deployment'" >&2
+                          kubectl delete svc -n "$NS" "${APP}-svc" --ignore-not-found=true || echo "WARNING: Failed to delete service '${APP}-svc'" >&2
+                          kubectl delete servicemonitor -n tools "${APP}" --ignore-not-found=true || echo "WARNING: Failed to delete servicemonitor '$APP'" >&2
+
+                          echo "Cleanup step completed (errors ignored)."
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+              - step:
+                  type: Http
+                  name: Harness IDP Cleanup
+                  identifier: Harness_IDP_Cleanup
+                  spec:
+                    url: https://app.harness.io/v1/entities/account.<+org.identifier>.<+project.identifier>/component/<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.IDP_IDENTIFIER>?accountIdentifier=<+account.identifier>&orgIdentifier=<+org.identifier>&projectIdentifier=<+project.identifier>
+                    method: DELETE
+                    headers:
+                      - key: x-api-key
+                        value: <+pipeline.variables.harness_pat>
+                    inputVariables: []
+                    outputVariables: []
+                    delegateSelectors:
+                      - <+pipeline.variables.harness_delegate>
+                    assertion: <+httpResponseCode> == 204
+                  timeout: 30s
+                contextType: Pipeline
+              - step:
+                  type: Http
+                  name: GitHub Repo Cleanup
+                  identifier: GitHub_Repo_Cleanup
+                  spec:
+                    url: https://api.github.com/repos/<+pipeline.variables.gh_org>/<+pipeline.variables.account_name>-<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.PROJECT_SLUG>
+                    method: DELETE
+                    headers:
+                      - key: Authorization
+                        value: token <+pipeline.variables.gh_token>
+                    inputVariables: []
+                    outputVariables: []
+                    delegateSelectors:
+                      - <+pipeline.variables.harness_delegate>
+                    assertion: <+httpResponseCode> == 204
+                  timeout: 10s
+              - step:
+                  type: Http
+                  name: Harness Service Cleanup
+                  identifier: Harness_Service_Cleanup
+                  spec:
+                    url: https://app.harness.io/ng/api/servicesV2/<+pipeline.stages.App_Provisioner.spec.execution.steps.Setup_Pipeline.output.outputVariables.SERVICE_IDENTIFIER>?accountIdentifier=<+account.identifier>&orgIdentifier=<+org.identifier>&projectIdentifier=<+project.identifier>&forceDelete=true
+                    method: DELETE
+                    headers:
+                      - key: x-api-key
+                        value: <+pipeline.variables.harness_pat>
+                    inputVariables: []
+                    outputVariables: []
+                    delegateSelectors:
+                      - <+pipeline.variables.harness_delegate>
+                    assertion: <+httpResponseCode> == 200
+                  timeout: 30s
+        tags: {}
+  variables:
+    - name: project_name
+      type: String
+      value: <+input>
+    - name: project_description
+      type: String
+      value: <+input>.default(A sample Java application built with Spring Boot)
+    - name: project_owner
+      type: String
+      value: <+input>.default(todd.parson@harness.io)
+    - name: group_id
+      type: String
+      value: <+input>.default(com.harness)
+    - name: version
+      type: String
+      value: <+input>.default(1.0-SNAPSHOT)
+    - name: artifact_id
+      type: String
+      value: <+pipeline.variables.project_slug>
+    - name: testing
+      type: String
+      value: <+input>.default(no).selectOneFrom(yes,no)
+    - name: gh_token
+      type: Secret
+      value: parson-gh-pat
+    - name: register_component
+      type: String
+      description: ""
+      required: false
+      value: <+input>.default(true).selectOneFrom(true,false)
+    - name: docker_registry
+      type: String
+      description: ""
+      required: false
+      value: <+input>.default(parsontodd)
+    - name: docker_image_name
+      type: String
+      description: ""
+      required: false
+      value: <+pipeline.variables.project_slug>
+    - name: k8s_namespace
+      type: String
+      description: ""
+      required: false
+      value: <+input>.default(dev)
+    - name: gh_org
+      type: String
+      description: ""
+      required: false
+      value: <+input>.default(harness-idp-sandbox)
+    - name: gh_connector_ref
+      type: String
+      description: The Harness GitHub Connector Identifier used to register the catalog component
+      required: false
+      value: <+input>.default(parsonghharnessidpsandbox)
+    - name: project_slug
+      type: String
+      description: ""
+      required: false
+      value: <+pipeline.variables.project_name.toLowerCase().replace(" ", "-")>
+    - name: account_name
+      type: String
+      description: Customer or account name to be used as a prefix on new repo provisioning.
+      required: false
+      value: <+input>.default(harness)
+    - name: harness_pat
+      type: Secret
+      description: ""
+      required: false
+      value: parson-api
+    - name: service_identifier
+      type: String
+      description: ""
+      required: false
+      value: <+pipeline.variables.project_slug.replace("-", "")>
+    - name: package_name
+      type: String
+      description: ""
+      required: false
+      value: <+pipeline.variables.project_name.toLowerCase().replace(" ", "").replace("-", "")>
+    - name: package_path
+      type: String
+      description: ""
+      required: false
+      value: <+pipeline.variables.group_id.replace(".", "/")>/<+pipeline.variables.package_name>
+    - name: sonar_url
+      type: String
+      description: ""
+      required: false
+      value: http://a318717c058b64c32bc88e3ec5b37edc-ae82f49ebe3b52d0.elb.us-east-1.amazonaws.com:9000
+    - name: docker_connector_ref
+      type: String
+      description: ""
+      required: false
+      value: parsondocker
+    - name: harness_delegate
+      type: String
+      description: ""
+      required: false
+      value: parson-eks-delegate
+    - name: harness_deployment_env_id
+      type: String
+      description: Enter the Harness ID of the environment to which this app will be deployed
+      required: true
+      value: <+input>.default(Dev_EKS)
+    - name: harness_deployment_infra_id
+      type: String
+      description: Enter the Harness ID of the infrastructure to which this app will be deployed
+      required: false
+      value: <+input>.default(Dev_EKS)
+  properties:
+    ci:
+      codebase:
+        connectorRef: <+pipeline.variables.gh_connector_ref>
+        repoName: <+pipeline.variables.account_name>-<+pipeline.variables.project_slug>
+        build:
+          type: branch
+          spec:
+            branch: main
+        sparseCheckout: []
