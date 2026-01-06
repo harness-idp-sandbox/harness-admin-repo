@@ -12,7 +12,8 @@ spec:
     - title: Pipeline Details
       url: ${{ steps.trigger.output.PipelineUrl }}
     - title: Catalog (if registered)
-      url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Register_Component.output.outputVariables.CATALOG_URL'] }}
+      url: ${{ steps.trigger.output['pipeline.stages.App_Provisioner.spec.execution.steps.Register_Component.output.outputVariables.CATALOG_URL']
+        }}
   parameters:
   - title: Application Details
     required:
@@ -38,24 +39,6 @@ spec:
         title: App Description
         type: string
         default: A sample Java application built with Spring Boot
-  # - title: Platform & Integrations
-  #   properties:
-  #     gh_org:
-  #       title: GitHub Org
-  #       type: string
-  #       default: harness-idp-sandbox
-  #     connector_ref:
-  #       title: Harness GitHub Connector (identifier)
-  #       type: string
-  #       default: githubharness
-  #     k8s_namespace:
-  #       title: Kubernetes Namespace
-  #       type: string
-  #       default: dev
-  #     sonar_url:
-  #       title: SonarQube URL
-  #       type: string
-  #       default: http://a318717c058b64c32bc88e3ec5b37edc-ae82f49ebe3b52d0.elb.us-east-1.amazonaws.com:9000
   - title: Options
     properties:
       testing:
@@ -85,15 +68,9 @@ spec:
         project_name: ${{ parameters.project_name }}
         project_description: ${{ parameters.project_description }}
         project_owner: ${{ parameters.project_owner }}
-        group_id: ${{ parameters.group_id }}
-        version: ${{ parameters.version }}
         testing: ${{ parameters.testing }}
-        enforce_requestor_access: ${{ parameters.enforce_requestor_access }}
-        gh_org: ${{ parameters.gh_org }}
-        connector_ref: ${{ parameters.connector_ref }}
-        k8s_namespace: ${{ parameters.k8s_namespace }}
-        sonar_url: ${{ parameters.sonar_url }}
-        register_component: ${{ parameters.register_component and "true" or "false" }}
+        register_component: ${{ parameters.register_component and "true" or "false"
+          }}
       showOutputVariables: true
 metadata:
   actionButton:
