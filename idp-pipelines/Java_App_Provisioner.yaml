@@ -553,6 +553,16 @@ pipeline:
       description: ACTION REQUIRED - Enter the Harness ID of the infrastructure to which this app will be deployed
       required: false
       value: <+input>.default(Dev_EKS)
+    - name: account_name
+      type: String
+      description: ACTION NEEDED - Enter a 3-letter abbreviation for the customer name to be used as a prefix on new repo provisioning.
+      required: false
+      value: <+input>.default(harness)
+    - name: harness_pat
+      type: Secret
+      description: ACTION NEEDED - Enter the Harness ID of the Harness API key used to access the customer Harness account
+      required: false
+      value: parson-api
     - name: group_id
       type: String
       value: com.harness
@@ -604,16 +614,6 @@ pipeline:
       description: ""
       required: false
       value: <+pipeline.variables.project_name.toLowerCase().replace(" ", "-")>
-    - name: account_name
-      type: String
-      description: Customer or account name to be used as a prefix on new repo provisioning.
-      required: false
-      value: <+input>.default(harness)
-    - name: harness_pat
-      type: Secret
-      description: ACTION NEEDED - Enter the Harness ID of the Harness API key used to access the customer Harness account
-      required: false
-      value: parson-api
     - name: service_identifier
       type: String
       description: ""
