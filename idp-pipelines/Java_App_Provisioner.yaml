@@ -533,6 +533,26 @@ pipeline:
     - name: project_owner
       type: String
       value: <+input>.default(todd.parson@harness.io)
+    - name: docker_connector_ref
+      type: String
+      description: ACTION REQUIRED - Enter the Harness ID of the DockerHub connector used to deploy to the parsontodd public Docker registry
+      required: false
+      value: parsondocker
+    - name: harness_delegate
+      type: String
+      description: ACTION REQUIRED - Enter the Harness ID of the Delegate that will be used to deploy to the Harness EKS environment
+      required: false
+      value: parson-eks-delegate
+    - name: harness_deployment_env_id
+      type: String
+      description: ACTION REQUIRED - Enter the Harness ID of the environment to which this app will be deployed
+      required: true
+      value: <+input>.default(Dev_EKS)
+    - name: harness_deployment_infra_id
+      type: String
+      description: ACTION REQUIRED - Enter the Harness ID of the infrastructure to which this app will be deployed
+      required: false
+      value: <+input>.default(Dev_EKS)
     - name: group_id
       type: String
       value: <+input>.default(com.harness)
@@ -613,26 +633,6 @@ pipeline:
       description: ""
       required: false
       value: http://a318717c058b64c32bc88e3ec5b37edc-ae82f49ebe3b52d0.elb.us-east-1.amazonaws.com:9000
-    - name: docker_connector_ref
-      type: String
-      description: ""
-      required: false
-      value: parsondocker
-    - name: harness_delegate
-      type: String
-      description: ""
-      required: false
-      value: parson-eks-delegate
-    - name: harness_deployment_env_id
-      type: String
-      description: Enter the Harness ID of the environment to which this app will be deployed
-      required: true
-      value: <+input>.default(Dev_EKS)
-    - name: harness_deployment_infra_id
-      type: String
-      description: Enter the Harness ID of the infrastructure to which this app will be deployed
-      required: false
-      value: <+input>.default(Dev_EKS)
   properties:
     ci:
       codebase:
