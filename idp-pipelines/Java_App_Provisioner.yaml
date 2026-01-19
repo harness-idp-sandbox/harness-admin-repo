@@ -577,6 +577,11 @@ pipeline:
       description: "ATTENTION: If deploying to a customer's public DockerHub repo instead of the parsontodd Harness sandbox repo, update this value to the customer's registry repo"
       required: false
       value: <+input>.default(parsontodd)
+    - name: k8s_namespace
+      type: String
+      description: ACTION NEEDED - If deploying to a unique EKS namespace in the Harness IDP sandbox environment, update the namespace here
+      required: false
+      value: <+input>.default(dev)
     - name: group_id
       type: String
       value: com.harness
@@ -599,11 +604,6 @@ pipeline:
       description: ""
       required: false
       value: <+pipeline.variables.project_slug>
-    - name: k8s_namespace
-      type: String
-      description: ""
-      required: false
-      value: <+input>.default(dev)
     - name: gh_org
       type: String
       description: ""
