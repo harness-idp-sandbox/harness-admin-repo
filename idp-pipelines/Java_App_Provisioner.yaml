@@ -555,10 +555,10 @@ pipeline:
       value: <+input>.default(Dev_EKS)
     - name: group_id
       type: String
-      value: <+input>.default(com.harness)
+      value: com.harness
     - name: version
       type: String
-      value: <+input>.default(1.0-SNAPSHOT)
+      value: 1.0-SNAPSHOT
     - name: artifact_id
       type: String
       value: <+pipeline.variables.project_slug>
@@ -567,6 +567,7 @@ pipeline:
       value: <+input>.default(no).selectOneFrom(yes,no)
     - name: gh_token
       type: Secret
+      description: ACTION NEEDED - Enter the Harness ID for the GitHub PAT that will be used to access the harness-idp-sandbox GH org
       value: parson-gh-pat
     - name: register_component
       type: String
@@ -575,7 +576,7 @@ pipeline:
       value: <+input>.default(true).selectOneFrom(true,false)
     - name: docker_registry
       type: String
-      description: ""
+      description: "ATTENTION: If deploying to a customer's public DockerHub repo instead of the parsontodd Harness sandbox repo, update this value to the customer's registry repo"
       required: false
       value: <+input>.default(parsontodd)
     - name: docker_image_name
@@ -610,7 +611,7 @@ pipeline:
       value: <+input>.default(harness)
     - name: harness_pat
       type: Secret
-      description: ""
+      description: ACTION NEEDED - Enter the Harness ID of the Harness API key used to access the customer Harness account
       required: false
       value: parson-api
     - name: service_identifier
