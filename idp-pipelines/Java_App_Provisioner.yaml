@@ -533,24 +533,19 @@ pipeline:
     - name: project_owner
       type: String
       value: <+input>.default(todd.parson@harness.io)
-    - name: docker_connector_ref
-      type: String
-      description: ACTION REQUIRED - Enter the Harness ID of the DockerHub connector used to deploy to the parsontodd public Docker registry
-      required: false
-      value: parsondocker
     - name: harness_delegate
       type: String
-      description: ACTION REQUIRED - Enter the Harness ID of the Delegate that will be used to deploy to the Harness EKS environment
+      description: ACTION NEEDED - Enter the Harness ID of the Delegate that will be used to deploy to the Harness EKS environment
       required: false
       value: parson-eks-delegate
     - name: harness_deployment_env_id
       type: String
-      description: ACTION REQUIRED - Enter the Harness ID of the environment to which this app will be deployed
+      description: ACTION NEEDED - Enter the Harness ID of the environment to which this app will be deployed
       required: true
       value: <+input>.default(Dev_EKS)
     - name: harness_deployment_infra_id
       type: String
-      description: ACTION REQUIRED - Enter the Harness ID of the infrastructure to which this app will be deployed
+      description: ACTION NEEDED - Enter the Harness ID of the infrastructure to which this app will be deployed
       required: false
       value: <+input>.default(Dev_EKS)
     - name: account_name
@@ -563,6 +558,25 @@ pipeline:
       description: ACTION NEEDED - Enter the Harness ID of the Harness API key used to access the customer Harness account
       required: false
       value: parson-api
+    - name: gh_token
+      type: Secret
+      description: ACTION NEEDED - Enter the Harness ID for the GitHub PAT that will be used to access the harness-idp-sandbox GH org
+      value: parson-gh-pat
+    - name: gh_connector_ref
+      type: String
+      description: ACTION NEEDED - Enter the Harness ID for the Harness GitHub Connector used to register the catalog component
+      required: false
+      value: <+input>.default(parsonghharnessidpsandbox)
+    - name: docker_connector_ref
+      type: String
+      description: ACTION NEEDED - Enter the Harness ID of the DockerHub connector used to deploy to the parsontodd public Docker registry
+      required: false
+      value: parsondocker
+    - name: docker_registry
+      type: String
+      description: "ATTENTION: If deploying to a customer's public DockerHub repo instead of the parsontodd Harness sandbox repo, update this value to the customer's registry repo"
+      required: false
+      value: <+input>.default(parsontodd)
     - name: group_id
       type: String
       value: com.harness
@@ -575,20 +589,11 @@ pipeline:
     - name: testing
       type: String
       value: <+input>.default(no).selectOneFrom(yes,no)
-    - name: gh_token
-      type: Secret
-      description: ACTION NEEDED - Enter the Harness ID for the GitHub PAT that will be used to access the harness-idp-sandbox GH org
-      value: parson-gh-pat
     - name: register_component
       type: String
       description: ""
       required: false
       value: <+input>.default(true).selectOneFrom(true,false)
-    - name: docker_registry
-      type: String
-      description: "ATTENTION: If deploying to a customer's public DockerHub repo instead of the parsontodd Harness sandbox repo, update this value to the customer's registry repo"
-      required: false
-      value: <+input>.default(parsontodd)
     - name: docker_image_name
       type: String
       description: ""
@@ -604,11 +609,6 @@ pipeline:
       description: ""
       required: false
       value: <+input>.default(harness-idp-sandbox)
-    - name: gh_connector_ref
-      type: String
-      description: The Harness GitHub Connector Identifier used to register the catalog component
-      required: false
-      value: <+input>.default(parsonghharnessidpsandbox)
     - name: project_slug
       type: String
       description: ""
