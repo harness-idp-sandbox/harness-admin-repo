@@ -36,8 +36,8 @@ metadata:
     github.com/project-slug: {{ cookiecutter.account_name }}-{{ cookiecutter.project_slug }}
     
     #Grafana dashboards
-    grafana/dashboard-selector: "folderUrl == 'https://98.95.159.122.sslip.io/dashboards/f/bf34szb60u2gwe/harness'"
-    grafana/overview-dashboard: 'https://98.95.159.122.sslip.io/d/19a44328-b2d2-4fb2-bfa3-d379d069124a/jvm-micrometer?orgId=1&kiosk&var-application={{ cookiecutter.project_slug }}'
+    grafana/dashboard-selector: "folderUrl == 'https://100.25.3.28.sslip.io/dashboards/f/bf34szb60u2gwe/harness'"
+    grafana/overview-dashboard: 'https://100.25.3.28.sslip.io/d/19a44328-b2d2-4fb2-bfa3-d379d069124a/jvm-micrometer?orgId=1&kiosk&var-application={{ cookiecutter.project_slug }}'
     
     #Sonar dashboard
     #Update if not using 'parson' Sonar instance
